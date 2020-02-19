@@ -9,15 +9,12 @@
             <img :src="preview" />
           </div>
         </div>
-        <div class="row m-5">
-          <div class="col-lg-6">
-            <input type="file" class="form-control" @change="showImage2" />
-            <img :src="preview2" />
-          </div>
-        </div>
+        <div class="row m-5"></div>
 
         <div class="row m-5">
-          <button class="btn btn-large" type="submit" @click="submit">submit</button>
+          <button class="btn btn-large" type="submit" @click="submit">
+            submit
+          </button>
         </div>
       </form>
     </div>
@@ -44,19 +41,17 @@ export default {
       image1: "",
       image2: "",
       preview: "",
-      preview2: ""
+      preview2: "",
+      imageData: {
+        imageLink: ""
+      }
     };
   },
 
   methods: {
     showImage(pic) {
       var input = pic.target;
-      var maxImageSize = 7168;
       var reader = new FileReader();
-      var imageSize = pic.target.files[0].size / 1024;
-      if (imageSize > maxImageSize) {
-        this.error = `files is too large . Limit is 7mb`;
-      }
       reader.onload = pic => {
         this.preview = pic.target.result;
       };
@@ -64,22 +59,17 @@ export default {
       this.image1 = pic.target.files[0];
       this.preview = null;
     },
-    showImage2(pic) {
-      var input = pic.target;
-      var maxImageSize = 7168;
-      var reader = new FileReader();
-      var imageSize = pic.target.files[0].size / 1024;
-      if (imageSize > maxImageSize) {
-        this.error = `files is too large . Limit is 7mb`;
-      }
-      reader.onload = pic => {
-        this.preview2 = pic.target.result;
-      };
-      reader.readAsDataURL(input.files[0]);
-      this.image2 = pic.target.files[0];
-      this.preview2 = null;
-    },
-    upload(image) {
+    // showImage2(pic) {
+    //   var input = pic.target;
+    //   var reader = new FileReader();
+    //   reader.onload = pic => {
+    //     this.preview2 = pic.target.result;
+    //   };
+    //   reader.readAsDataURL(input.files[0]);
+    //   this.image2 = pic.target.files[0];
+    //   this.preview2 = null;
+    // },
+    async upload(image) {
       var storageRef = firebase
         .storage()
         .ref("images")
@@ -98,23 +88,27 @@ export default {
         () => {
           this.uploadValue = 100;
           storageRef.snapshot.ref.getDownloadURL().then(url => {
-            window.console.log("uploaded " + url);
+            window.console.log("uploaded  " + url);
+            this.imageData.imageLink = url;
+            var db = firebase.database().ref();
+            db.child("image uploaded")
+              .push()
+              .set(this.imageData);
+
             return;
           });
         }
       );
     },
     onUpload() {
-      this.upload(this.image1, 1);
-      this.upload(this.image2, 2);
+      this.upload(this.image1);
+      // this.upload(this.image2, 2);
     },
 
     submit() {
       this.onUpload();
 
       this.preview = "";
-      this.preview2 = "";
-      this.input = ""
     }
   }
 };
