@@ -37,6 +37,7 @@ img {
 }
 </style>
 <script>
+import firebase from "firebase";
 export default {
   data() {
     return {
@@ -78,10 +79,42 @@ export default {
       this.image2 = pic.target.files[0];
       this.preview2 = null;
     },
+    upload(image) {
+      var storageRef = firebase
+        .storage()
+        .ref("images")
+        .child(`${image.name}`)
+        .put(image);
+
+      storageRef.on(
+        `state_changed`,
+        snapshot => {
+          this.uploadValue =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        },
+        error => {
+          window.console.log(error.message);
+        },
+        () => {
+          this.uploadValue = 100;
+          storageRef.snapshot.ref.getDownloadURL().then(url => {
+            window.console.log("uploaded " + url);
+            return;
+          });
+        }
+      );
+    },
+    onUpload() {
+      this.upload(this.image1, 1);
+      this.upload(this.image2, 2);
+    },
 
     submit() {
-      window.console.log(this.image1);
-      window.console.log(this.image2.name);
+      this.onUpload();
+
+      this.preview = "";
+      this.preview2 = "";
+      this.input = ""
     }
   }
 };
