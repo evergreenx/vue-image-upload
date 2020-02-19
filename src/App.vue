@@ -9,7 +9,12 @@
             <img :src="preview" />
           </div>
         </div>
-        <div class="row m-5"></div>
+        <div class="row m-5">
+          <div class="col-lg-6">
+            <input type="file" class="form-control" @change="showImage2" />
+            <img :src="preview2" />
+          </div>
+        </div>
 
         <div class="row m-5">
           <button class="btn btn-large" type="submit" @click="submit">
@@ -43,7 +48,8 @@ export default {
       preview: "",
       preview2: "",
       imageData: {
-        imageLink: ""
+        imageLink: "",
+        imageLink2: ""
       }
     };
   },
@@ -59,17 +65,17 @@ export default {
       this.image1 = pic.target.files[0];
       this.preview = null;
     },
-    // showImage2(pic) {
-    //   var input = pic.target;
-    //   var reader = new FileReader();
-    //   reader.onload = pic => {
-    //     this.preview2 = pic.target.result;
-    //   };
-    //   reader.readAsDataURL(input.files[0]);
-    //   this.image2 = pic.target.files[0];
-    //   this.preview2 = null;
-    // },
-    async upload(image) {
+    showImage2(pic) {
+      var input = pic.target;
+      var reader = new FileReader();
+      reader.onload = pic => {
+        this.preview2 = pic.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+      this.image2 = pic.target.files[0];
+      this.preview2 = null;
+    },
+    async upload(image, number) {
       var storageRef = firebase
         .storage()
         .ref("images")
@@ -90,6 +96,17 @@ export default {
           storageRef.snapshot.ref.getDownloadURL().then(url => {
             window.console.log("uploaded  " + url);
             this.imageData.imageLink = url;
+            switch (number) {
+              case 1:
+                this.imageData.imageLink = url;
+
+                break;
+              case 2:
+                this.imageData.imageLink2 = url;
+                break;
+              default:
+                break;
+            }
             var db = firebase.database().ref();
             db.child("image uploaded")
               .push()
@@ -101,8 +118,8 @@ export default {
       );
     },
     onUpload() {
-      this.upload(this.image1);
-      // this.upload(this.image2, 2);
+      this.upload(this.image1, 1);
+      this.upload(this.image2, 2);
     },
 
     submit() {
